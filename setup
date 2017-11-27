@@ -124,6 +124,9 @@ pip install -U cuckoo
 # Initial run of Cuckoo to create the .cuckoo/* files and directories
 cuckoo -d
 
+# Install the Cuckoo community plugins
+cuckoo community
+
 # Create the uWSGI ini file
 cuckoo web --uwsgi | tee /tmp/cuckoo-web.ini
 
