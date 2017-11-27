@@ -131,7 +131,16 @@ cuckoo web --uwsgi | tee /tmp/cuckoo-web.ini
 cuckoo web --nginx | sed -e 's/localhost://g' | tee /tmp/cuckoo-web
 
 # Change enabled = no to enabled = yes in the MongoDB stanza in reporting.conf
-sed -i '/[mongodb]/{$!{N;s/^enabled = no/enabled = yes/;ty;P;D;:y}}' ~/.cuckoo/conf/reporting.conf
+sed -i '/^\[mongodb\]$/{
+    $!{ N
+        s/^\[mongodb\]\nenabled = no$/\[mongodb\]\nenabled = yes/
+        t sub-yes
+        :sub-not
+        P
+        D
+        :sub-yes
+    }
+}' ~/.cuckoo/conf reporting.conf
 
 EO_CUCKOO
 
