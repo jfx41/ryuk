@@ -8,8 +8,8 @@ This tool makes a lot of assumptions:
   * uWSGI
   * nginx
 * You don't mind it installing boatloads of dependencies Cuckoo and various Python modules need.
-* The user Cuckoo will run under is ~cuckoo~
-* You will be running it as a user other than ~cuckoo~ and have sudo access.
+* The user Cuckoo will run under is *cuckoo*
+* You will be running it as a user other than *cuckoo* and have sudo rights.
 * You have already done the basic tweaks Cuckoo recommends for Linux installs.
   * If you haven't done this yet, you can read a quick and dirty summary on the topic in this [post](https://packetdamage.com/going-cuckoo-linux-installation/).
 
