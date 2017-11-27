@@ -64,7 +64,7 @@ EOH
 
 # The various settings we need for Cuckoo to work
 cat <<EOH >> ~/.bash_cuckoo
-export WORKON_HOME=“$HOME/.virtualenvs"
+export WORKON_HOME=“\$HOME/.virtualenvs"
 source /usr/local/bin/virtualenvwrapper.sh
 
 # Automatically workon the Cuckoo env
@@ -139,7 +139,7 @@ EO_CUCKOO
 chmod +x /tmp/cuckoo-installer
 
 # Run the cuckoo-installer as Cuckoo.  This might take a while.
-sudo -u cuckoo /tmp/cuckoo-installer
+sudo -in -u cuckoo /tmp/cuckoo-installer
 
 # Move the Cuckoo created uWSGI configuration files into place
 #   Link the file into the sites-available directory
