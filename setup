@@ -64,8 +64,8 @@ EOH
 
 # The various settings we need for Cuckoo to work
 cat <<EOH >> ~/.bash_cuckoo
-export WORKON_HOME=“\$HOME/.virtualenvs"
-source /usr/local/bin/virtualenvwrapper.sh
+export WORKON_HOME=\$HOME/.virtualenvs
+. /usr/local/bin/virtualenvwrapper.sh
 
 # Automatically workon the Cuckoo env
 workon Cuckoo
@@ -73,6 +73,7 @@ EOH
 
 # Reload to pull in the Cuckoo environmentals
 . ~/.bashrc
+. /usr/local/bin/virtualenvwrapper.sh
 
 # Create a Cuckoo virtual environment and activate it.
 mkvirtualenv Cuckoo
