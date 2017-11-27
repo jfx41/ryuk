@@ -144,7 +144,7 @@ sed -i '/^\[mongodb\]$/{
         D
         :sub-yes
     }
-}' ~/.cuckoo/conf reporting.conf
+}' ~/.cuckoo/conf/reporting.conf
 
 EO_CUCKOO
 
