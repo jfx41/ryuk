@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# Install all of the dependencies that Cuckoo needs.  This covers
+# dependencies by various Python modules that pip will install.
+sudo apt-get install -y build-essential zip unzip
+sudo apt-get install -y python python-pip python-dev
+sudo apt-get install -y python-virtualenv python-setuptools
+sudo apt-get install -y libfuzzy-dev libffi-dev libssl-dev libcap2-bin
+sudo apt-get install -y libjpeg-dev zlib1g-dev swig
+sudo apt-get install -y uwsgi uwsgi-plugin-python nginx
+sudo apt-get install -y mongodb
+sudo apt-get install -y postgresql libpq-dev
+sudo apt-get install -y yara ssdeep
+sudo apt-get install -y tcpdump apparmor-utils
+
+# Update pip and install setup tools
+sudo pip install -U pip setuptools
+
+# Add the VirtualBox repository so we can use apt to install VirtualBox
+echo deb http://download.virtualbox.org/virtualbox/debian xenial contrib | sudo tee -a /etc/apt/sources.list.d/virtualbox.list
+
+# Import the VirtualBox key
+wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
+
+# Refresh the available packages
+sudo apt-get update
+
+# Install VirtualBox 5.2
+sudo apt-get install -y virtualbox-5.2
+
+# Disable AppArmor and enable raw captures on tcpdump.
+sudo aa-disable /usr/sbin/tcpdump
+sudo setcap cap_net_raw,cap_net_admin=eip /usr/sbin/tcpdump
+
+# Install Python virtual environment modules
+sudo pip install virtualenv virtualenvwrapper
+
+# Check a couple of sysctl.conf settings and set them if they don't exist
+sysctl="fs.file-max=2097152 net.ipv4.ip_forward=1"
+for setting in $sysctl
+do
+    exists=$(grep ^${setting%=*} /etc/sysctl.conf)
+    if [ -z "$exists" ]
+    then
+        sudo echo $setting >> /etc/sysctl.conf
+    fi
+done
+sudo sysctl -p
+
+# Add the Cuckoo user and make it a member of the vboxusers group
+sudo adduser cuckoo
+sudo usermod -a -G vboxusers cuckoo
+
+# Create an installer file that needs to be run as the Cuckoo user
+cat <<EO_CUCKOO > /tmp/cuckoo-install.sh
+
+# Enable the Cuckoo environment when logged in as cuckoo
+cat <<EOH >> ~/.bashrc
+if [ -f ~/.bash_cuckoo ]; then
+    . ~/.bash_cuckoo
+fi
+EOH
+
+# The various settings we need for Cuckoo to work
+cat <<EOH >> ~/.bash_cuckoo
+export WORKON_HOME=“$HOME/.virtualenvs"
+source /usr/local/bin/virtualenvwrapper.sh
+
+# Automatically workon the Cuckoo env
+workon Cuckoo
+EOH
+
+# Reload to pull in the Cuckoo environmentals
+. ~/.bashrc
+
+# Create a Cuckoo virtual environment and activate it.
+mkvirtualenv Cuckoo
+workon Cuckoo
+
+# Install pip updates and the setup tools
+pip install -U pip setuptools
+
+# Create a tools directory for various things we need
+mkdir ~/.tools
+cd ~/.tools
+
+# Install Volatility for memory dumps
+git clone https://github.com/volatilityfoundation/volatility.git
+cd volatility
+python setup.py install
+cd -
+
+# Install pydeep
+pip install pydeep
+pip install distorm3
+
+# Install PyCrypto: https://www.dlitz.net/software/pycrypto/
+pip install pycrypto
+
+# Install Python Image Library (PIL): http://www.pythonware.com/products/pil/
+wget -O ~/.tools/pil-1.1.7.tar.gz http://effbot.org/downloads/Imaging-1.1.7.tar.gz
+tar xzvf ~/.tools/pil-1.1.7.tar.gz -C /tmp
+cd ~/.tools/Imaging-1.1.7
+python setup.py install
+rm -rf ~/.tools/pil-1.1.7.tar.gz
+cd -
+
+# Install OpenPyxl: https://pypi.python.org/pypi/openpyxl
+pip install openpyxl
+
+# Install ujson: https://pypi.python.org/pypi/ujson
+pip install ujson
+
+# Install pytz
+pip install pytz
+
+# Install M2Crypto
+pip install m2crypto==0.24.0
+
+# FINALLY .. install Cuckoo:
+pip install -U cuckoo
+
+# Initial run of Cuckoo to create the .cuckoo/* files and directories
+cuckoo -d
+
+# Create the uWSGI ini file
+cuckoo web --uwsgi | tee /tmp/cuckoo-web.ini
+
+# Create the Nginx conf file and make it listen on 0.0.0.0
+cuckoo web --nginx | sed -e 's/localhost://g' | tee /tmp/cuckoo-web
+
+# Change enabled = no to enabled = yes in the MongoDB stanza in reporting.conf
+sed -i '/[mongodb]/{$!{N;s/^enabled = no/enabled = yes/;ty;P;D;:y}}' ~/.cuckoo/conf/reporting.conf
+
+EO_CUCKOO
+
+# Bake the installer executable
+chmod +x /tmp/cuckoo-installer
+
+# Run the cuckoo-installer as Cuckoo.  This might take a while.
+sudo -u cuckoo /tmp/cuckoo-installer
+
+# Move the Cuckoo created uWSGI configuration files into place
+#   Link the file into the sites-available directory
+#   Restart uwsgi service
+sudo mv -i /tmp/cuckoo-web.ini /etc/uwsgi/apps-available/
+sudo ln -s /etc/uwsgi/apps-available/cuckoo-web.ini /etc/uwsgi/apps-enabled/
+sudo service uwsgi restart cuckoo-web
+
+# Move the Cuckoo created Nginx configuration file into place
+#   Link the file into the sites-available directory
+#   Restart nginx service
+sudo mv -i /tmp/cuckoo-web
+sudo ln -s /etc/nginx/sites-available/cuckoo-web /etc/nginx/sites-enabled/
+sudo service nginx restart
+
+# EOF
