@@ -42,13 +42,13 @@ do
     exists=$(grep ^${setting%=*} /etc/sysctl.conf)
     if [ -z "$exists" ]
     then
-        sudo echo $setting >> /etc/sysctl.conf
+        sudo su - -c "echo $setting >> /etc/sysctl.conf"
     fi
 done
 sudo sysctl -p
 
 # Add the Cuckoo user and make it a member of the vboxusers group
-sudo adduser cuckoo
+sudo useradd cuckoo
 sudo usermod -a -G vboxusers cuckoo
 
 # Create an installer file that needs to be run as the Cuckoo user
