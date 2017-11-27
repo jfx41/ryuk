@@ -164,7 +164,7 @@ sudo service uwsgi restart cuckoo-web
 # Move the Cuckoo created Nginx configuration file into place
 #   Link the file into the sites-available directory
 #   Restart nginx service
-sudo mv -i /tmp/cuckoo-web
+sudo mv -i /tmp/cuckoo-web /etc/nginx/sites-available/
 sudo ln -s /etc/nginx/sites-available/cuckoo-web /etc/nginx/sites-enabled/
 sudo service nginx restart
 
