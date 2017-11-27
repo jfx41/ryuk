@@ -21,4 +21,9 @@ chmod +x setup
 ./setup
 ```
 
+## Alternate method
+```
+curl -s https://raw.githubusercontent.com/jfx41/ryuk/master/setup | bash
+```
+
 Good luck!
