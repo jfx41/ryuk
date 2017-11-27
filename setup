@@ -52,7 +52,8 @@ sudo adduser cuckoo
 sudo usermod -a -G vboxusers cuckoo
 
 # Create an installer file that needs to be run as the Cuckoo user
-cat <<EO_CUCKOO > /tmp/cuckoo-install.sh
+cat <<EO_CUCKOO > /tmp/cuckoo-installer
+#!/bin/bash
 
 # Enable the Cuckoo environment when logged in as cuckoo
 cat <<EOH >> ~/.bashrc
