@@ -166,6 +166,7 @@ sudo service uwsgi restart cuckoo-web
 #   Restart nginx service
 sudo mv -i /tmp/cuckoo-web /etc/nginx/sites-available/
 sudo ln -s /etc/nginx/sites-available/cuckoo-web /etc/nginx/sites-enabled/
+sudo adduser www-data cuckoo
 sudo service nginx restart
 
 # EOF
