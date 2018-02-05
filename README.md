@@ -23,7 +23,7 @@ chmod +x setup
 
 ## Alternate method
 ```
-curl -s https://raw.githubusercontent.com/jfx41/ryuk/master/setup | bash
+curl -s https://raw.githubusercontent.com/najashark/ryuk/master/setup | bash
 ```
 
 Good luck!
