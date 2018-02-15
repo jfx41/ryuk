@@ -119,6 +119,9 @@ pip install pytz
 # Install M2Crypto
 pip install m2crypto==0.24.0
 
+# Install pylzma
+pip install pylzma
+
 # FINALLY .. install Cuckoo:
 pip install -U cuckoo
 
